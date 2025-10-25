@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'partner' => [
+        'url' => env('PARTNER_API_URL', 'https://api.foodlyapp.ge'),
+        'timeout' => env('PARTNER_API_TIMEOUT', 30),
+    ],
+
 ];

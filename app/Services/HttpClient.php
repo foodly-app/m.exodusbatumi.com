@@ -44,6 +44,14 @@ class HttpClient
      */
     public function post(string $endpoint, array $data = []): array
     {
+        // Debug logging
+        Log::info('HttpClient POST request:', [
+            'endpoint' => $endpoint,
+            'full_url' => $this->buildUrl($endpoint),
+            'data_keys' => array_keys($data),
+            'base_url' => $this->baseUrl
+        ]);
+        
         // Check if data contains a file for multipart upload
         $hasFile = false;
         foreach ($data as $value) {

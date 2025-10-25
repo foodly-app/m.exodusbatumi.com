@@ -61,13 +61,7 @@
                     </div>
                 </form>
             </div>
-            <div class="card-footer text-center bg-light">
-                <p class="mb-0">არ გაქვთ ანგარიში? 
-                    <a href="{{ route('mobile.register') }}" class="text-decoration-none fw-bold">
-                        რეგისტრაცია
-                    </a>
-                </p>
-            </div>
+            <!-- Registration removed as requested -->
         </div>
     </div>
 </div>

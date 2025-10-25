@@ -564,18 +564,18 @@
             <i class="bi bi-house-door"></i>
             <span>მთავარი</span>
         </a>
-        <a href="{{ route('mobile.reservations.index') }}" class="nav-item {{ request()->routeIs('mobile.reservations.*') ? 'active' : '' }}">
+        <a href="#" class="nav-item">
             <i class="bi bi-calendar-check"></i>
             <span>რეზერვაციები</span>
         </a>
-        <a href="{{ route('mobile.booking.restaurants') }}" class="nav-item nav-item-primary {{ request()->routeIs('mobile.booking.*') ? 'active' : '' }}">
+        <a href="#" class="nav-item nav-item-primary">
             <i class="bi bi-plus-lg"></i>
         </a>
-        <a href="{{ route('mobile.payments.history') }}" class="nav-item {{ request()->routeIs('mobile.payments.*') ? 'active' : '' }}">
+        <a href="#" class="nav-item">
             <i class="bi bi-credit-card"></i>
             <span>გადახდები</span>
         </a>
-        <a href="{{ route('mobile.profile') }}" class="nav-item {{ request()->routeIs('mobile.profile') ? 'active' : '' }}">
+        <a href="#" class="nav-item">
             <i class="bi bi-person"></i>
             <span>პროფილი</span>
         </a>

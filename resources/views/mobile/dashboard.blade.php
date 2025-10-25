@@ -7,9 +7,12 @@
 <div class="card mb-3">
     <div class="card-body">
         <h4 class="mb-2">
-            <i class="bi bi-emoji-smile"></i> გამარჯობა, {{ Auth::user()->name }}!
+            <i class="bi bi-emoji-smile"></i> გამარჯობა, {{ session('partner_user.name', 'მენეჯერი') }}!
         </h4>
         <p class="text-muted mb-0 small">კეთილი იყოს თქვენი დაბრუნება FOODLY-ში</p>
+        @if(session('success'))
+            <div class="alert alert-success mt-2 mb-0">{{ session('success') }}</div>
+        @endif
     </div>
 </div>
 
@@ -19,7 +22,7 @@
         <div class="card text-white h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
             <div class="card-body text-center py-4">
                 <i class="bi bi-calendar-check" style="font-size: 2rem;"></i>
-                <h3 class="fw-bold mt-2 mb-0">{{ $upcomingCount }}</h3>
+                <h3 class="fw-bold mt-2 mb-0">{{ $summary['upcoming_reservations'] ?? '0' }}</h3>
                 <p class="mb-0 small">მომავალი</p>
             </div>
         </div>
@@ -29,7 +32,7 @@
         <div class="card text-white h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
             <div class="card-body text-center py-4">
                 <i class="bi bi-calendar-check-fill" style="font-size: 2rem;"></i>
-                <h3 class="fw-bold mt-2 mb-0">{{ Auth::user()->reservations()->count() }}</h3>
+                <h3 class="fw-bold mt-2 mb-0">{{ $summary['today_reservations'] ?? '0' }}</h3>
                 <p class="mb-0 small">სულ</p>
             </div>
         </div>

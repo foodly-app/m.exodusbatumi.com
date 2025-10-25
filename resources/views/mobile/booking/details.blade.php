@@ -29,7 +29,7 @@
                                        class="form-control @error('name') is-invalid @enderror" 
                                        id="name" 
                                        name="name" 
-                                       value="{{ old('name', Auth::user()->name) }}" 
+                                       value="{{ old('name', session('partner_user.name')) }}" 
                                        required>
                             </div>
                             @error('name')
@@ -45,7 +45,7 @@
                                        class="form-control @error('phone') is-invalid @enderror" 
                                        id="phone" 
                                        name="phone" 
-                                       value="{{ old('phone', Auth::user()->phone) }}" 
+                                       value="{{ old('phone', session('partner_user.phone')) }}" 
                                        required>
                             </div>
                             @error('phone')
@@ -61,7 +61,7 @@
                                        class="form-control @error('email') is-invalid @enderror" 
                                        id="email" 
                                        name="email" 
-                                       value="{{ old('email', Auth::user()->email) }}">
+                                       value="{{ old('email', session('partner_user.email')) }}">
                             </div>
                             @error('email')
                                 <div class="text-danger mt-1 small">{{ $message }}</div>

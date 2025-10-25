@@ -1,0 +1,6 @@
+Test login with debug logging enabled.
+
+Email: manager@exodusrestaurant.com
+Password: Manager_321
+
+After attempting login, check logs:

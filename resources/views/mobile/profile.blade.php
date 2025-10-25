@@ -36,7 +36,7 @@
                                    class="form-control @error('name') is-invalid @enderror" 
                                    id="name" 
                                    name="name" 
-                                   value="{{ old('name', Auth::user()->name) }}" 
+                                   value="{{ old('name', session('partner_user.name')) }}" 
                                    required>
                         </div>
                         @error('name')
@@ -51,7 +51,7 @@
                             <input type="email" 
                                    class="form-control" 
                                    id="email" 
-                                   value="{{ Auth::user()->email }}" 
+                                   value="{{ session('partner_user.email') }}" 
                                    disabled>
                         </div>
                         <small class="text-muted">ელ-ფოსტის შეცვლა შეუძლებელია</small>
@@ -65,7 +65,7 @@
                                    class="form-control @error('phone') is-invalid @enderror" 
                                    id="phone" 
                                    name="phone" 
-                                   value="{{ old('phone', Auth::user()->phone) }}" 
+                                   value="{{ old('phone', session('partner_user.phone')) }}" 
                                    placeholder="+995 5XX XX XX XX">
                         </div>
                         @error('phone')
