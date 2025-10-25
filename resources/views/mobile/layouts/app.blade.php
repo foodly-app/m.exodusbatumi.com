@@ -506,14 +506,20 @@
             <a href="{{ route('mobile.dashboard') }}" class="header-logo">
                 <img src="{{ asset('images/logo/logo-h-white.png') }}" alt="Foodly" height="32">
             </a>
-            @auth
+            @if(session('partner_token'))
             <div class="header-actions">
                 <button onclick="requestNotificationPermission()" class="header-icon" id="notification-bell" title="შეტყობინებების ჩართვა">
                     <i class="bi bi-bell" id="notification-icon" style="font-size: 20px;"></i>
                 </button>
-                <a href="{{ route('mobile.profile') }}" class="header-icon">
+                <a href="#" class="header-icon">
                     <i class="bi bi-person-circle" style="font-size: 24px;"></i>
                 </a>
+                <form action="{{ route('mobile.logout') }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.4rem 0.8rem;">
+                        <i class="bi bi-box-arrow-right"></i> გასვლა
+                    </button>
+                </form>
             </div>
             @else
             <div class="header-actions">
@@ -521,7 +527,7 @@
                     <i class="bi bi-box-arrow-in-right"></i> შესვლა
                 </a>
             </div>
-            @endauth
+            @endif
         </div>
     </header>
 
@@ -558,13 +564,13 @@
     </div>
 
     <!-- Bottom Navigation (Mobile Only) -->
-    @auth
+    @if(session('partner_token'))
     <nav class="bottom-nav">
         <a href="{{ route('mobile.dashboard') }}" class="nav-item {{ request()->routeIs('mobile.dashboard') ? 'active' : '' }}">
             <i class="bi bi-house-door"></i>
             <span>მთავარი</span>
         </a>
-        <a href="#" class="nav-item">
+        <a href="{{ route('mobile.reservations.index') }}" class="nav-item {{ request()->routeIs('mobile.reservations.*') ? 'active' : '' }}">
             <i class="bi bi-calendar-check"></i>
             <span>რეზერვაციები</span>
         </a>
@@ -580,7 +586,7 @@
             <span>პროფილი</span>
         </a>
     </nav>
-    @endauth
+    @endif
 
 
 
@@ -590,7 +596,7 @@
     <!-- Pusher Beams SDK -->
     <script src="https://js.pusher.com/beams/1.0/push-notifications-cdn.js"></script>
     
-    @auth
+    @if(session('partner_token'))
     <script>
         // Initialize Pusher Beams for Push Notifications
         document.addEventListener('DOMContentLoaded', function() {
@@ -686,7 +692,7 @@
             }
         });
     </script>
-    @endauth
+    @endif
     
     @stack('scripts')
 </body>

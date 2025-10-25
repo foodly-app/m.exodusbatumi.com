@@ -42,6 +42,12 @@ Route::prefix('mobile')->name('mobile.')->middleware(['web', 'mobile.auth'])->gr
     Route::get('/dashboard/{organization?}/{restaurant?}', function () {
         return view('mobile.dashboard-simple');
     })->name('dashboard');
+    
+    // Simple reservations route (without organization/restaurant parameters)
+    Route::get('/reservations', function () {
+        return view('mobile.reservations.index-simple');
+    })->name('reservations.index');
+    
     Route::get('/organizations/{organization}/dashboard/stats', [MobileDashboardController::class, 'getStats'])->name('dashboard.stats');
     Route::get('/organizations/{organization}/restaurants/{restaurant}/calendar', [MobileDashboardController::class, 'getCalendarData'])->name('dashboard.calendar');
     Route::get('/organizations/{organization}/restaurants/{restaurant}/search', [MobileDashboardController::class, 'searchReservations'])->name('dashboard.search');
@@ -103,8 +109,10 @@ Route::prefix('mobile')->name('mobile.')->middleware(['web', 'mobile.auth'])->gr
         Route::delete('/tables/{table}', [MobileRestaurantController::class, 'deleteTable'])->name('tables.delete');
         Route::get('/tables/{table}/availability', [MobileRestaurantController::class, 'checkTableAvailability'])->name('tables.check-availability');
         
-        // Reservations management
-        Route::get('/reservations', [MobileReservationController::class, 'index'])->name('reservations.index');
+        // Reservations management (nested in restaurant routes - for specific restaurant)
+        Route::get('/reservations/list', function () {
+            return view('mobile.reservations.index-simple');
+        })->name('reservations.list');
         Route::get('/reservations/upcoming', [MobileReservationController::class, 'upcoming'])->name('reservations.upcoming');
         Route::get('/reservations/data', [MobileReservationController::class, 'getReservations'])->name('reservations.data');
         Route::get('/reservations/counts', [MobileReservationController::class, 'getStatusCounts'])->name('reservations.counts');
