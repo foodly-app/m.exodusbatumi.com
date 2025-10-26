@@ -581,9 +581,9 @@
             <i class="bi bi-credit-card"></i>
             <span>გადახდები</span>
         </a>
-        <a href="#" class="nav-item">
-            <i class="bi bi-person"></i>
-            <span>პროფილი</span>
+        <a href="{{ route('mobile.settings.index') }}" class="nav-item {{ request()->routeIs('mobile.settings.*') ? 'active' : '' }}">
+            <i class="bi bi-gear"></i>
+            <span>პარამეტრები</span>
         </a>
     </nav>
     @endif

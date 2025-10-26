@@ -55,7 +55,7 @@
                 </a>
             </div>
             <div class="col-6">
-                <a href="#" class="btn btn-outline-success w-100 py-3">
+                <a href="{{ route('mobile.reservations.index') }}" class="btn btn-outline-success w-100 py-3">
                     <i class="bi bi-list-check d-block mb-2" style="font-size: 1.5rem;"></i>
                     რეზერვაციები
                 </a>
@@ -77,7 +77,7 @@
 </div>
 
 <!-- Status -->
-<div class="card">
+{{-- <div class="card">
     <div class="card-header">
         <h5 class="mb-0">
             <i class="bi bi-info-circle"></i> სისტემის ინფორმაცია
@@ -86,13 +86,11 @@
     <div class="card-body">
         <p class="mb-2"><strong>მომხმარებელი:</strong> {{ session('partner_user.email', 'N/A') }}</p>
         <p class="mb-2"><strong>სტატუსი:</strong> <span class="badge bg-success">აქტიური</span></p>
-        <p class="mb-0"><strong>სესია:</strong> File-based (No Database)</p>
-        
         @if(isset($error))
             <div class="alert alert-warning mt-3 mb-0">
                 <i class="bi bi-exclamation-triangle"></i> {{ $error }}
             </div>
         @endif
     </div>
-</div>
+</div> --}}
 @endsection

@@ -48,6 +48,29 @@ Route::prefix('mobile')->name('mobile.')->middleware(['web', 'mobile.auth'])->gr
         return view('mobile.reservations.index-simple');
     })->name('reservations.index');
     
+    // Settings routes
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', function () {
+            return view('mobile.settings.index');
+        })->name('index');
+        
+        Route::get('/profile', function () {
+            return view('mobile.settings.profile');
+        })->name('profile');
+        
+        Route::put('/profile', [MobileAuthController::class, 'updateProfile'])->name('profile.update');
+        
+        Route::get('/password', function () {
+            return view('mobile.settings.password');
+        })->name('password');
+        
+        Route::put('/password', [MobileAuthController::class, 'changePassword'])->name('password.update');
+        
+        Route::get('/about', function () {
+            return view('mobile.settings.about');
+        })->name('about');
+    });
+    
     Route::get('/organizations/{organization}/dashboard/stats', [MobileDashboardController::class, 'getStats'])->name('dashboard.stats');
     Route::get('/organizations/{organization}/restaurants/{restaurant}/calendar', [MobileDashboardController::class, 'getCalendarData'])->name('dashboard.calendar');
     Route::get('/organizations/{organization}/restaurants/{restaurant}/search', [MobileDashboardController::class, 'searchReservations'])->name('dashboard.search');
