@@ -157,7 +157,7 @@
                 <i class="bi bi-chevron-right text-muted"></i>
             </a>
 
-            <a href="#" class="d-flex align-items-center text-decoration-none text-dark py-2 border-top">
+            <a href="{{ route('mobile.restaurant.working-hours') }}" class="d-flex align-items-center text-decoration-none text-dark py-2 border-top">
                 <i class="bi bi-calendar3 text-primary me-3" style="font-size: 20px;"></i>
                 <div class="flex-grow-1">
                     <div class="fw-semibold">სამუშაო საათები</div>

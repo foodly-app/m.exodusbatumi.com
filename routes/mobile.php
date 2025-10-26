@@ -71,6 +71,15 @@ Route::prefix('mobile')->name('mobile.')->middleware(['web', 'mobile.auth'])->gr
         })->name('about');
     });
     
+    // Restaurant Settings routes
+    Route::prefix('restaurant')->name('restaurant.')->group(function () {
+        Route::get('/working-hours', function () {
+            return view('mobile.restaurant.working-hours');
+        })->name('working-hours');
+        
+        Route::put('/working-hours', [MobileRestaurantController::class, 'updateWorkingHours'])->name('working-hours.update');
+    });
+    
     Route::get('/organizations/{organization}/dashboard/stats', [MobileDashboardController::class, 'getStats'])->name('dashboard.stats');
     Route::get('/organizations/{organization}/restaurants/{restaurant}/calendar', [MobileDashboardController::class, 'getCalendarData'])->name('dashboard.calendar');
     Route::get('/organizations/{organization}/restaurants/{restaurant}/search', [MobileDashboardController::class, 'searchReservations'])->name('dashboard.search');
