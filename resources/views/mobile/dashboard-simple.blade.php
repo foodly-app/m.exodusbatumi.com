@@ -67,7 +67,7 @@
                 </a>
             </div>
             <div class="col-6">
-                <a href="#" class="btn btn-outline-warning w-100 py-3">
+                <a href="{{ route('mobile.settings.index') }}" class="btn btn-outline-warning w-100 py-3">
                     <i class="bi bi-gear d-block mb-2" style="font-size: 1.5rem;"></i>
                     პარამეტრები
                 </a>

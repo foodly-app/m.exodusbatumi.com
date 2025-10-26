@@ -281,7 +281,7 @@
     </div>
 
     <!-- Legal Section -->
-    <div class="card mb-3">
+    {{-- <div class="card mb-3">
         <div class="card-body p-3">
             <a href="#" class="d-flex align-items-center text-decoration-none text-dark py-2">
                 <i class="bi bi-file-text text-primary me-3" style="font-size: 20px;"></i>
@@ -299,7 +299,7 @@
                 <i class="bi bi-chevron-right text-muted"></i>
             </a>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Logout Button -->
     <div class="card mb-4 border-danger">
