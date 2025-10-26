@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 
 Route::get('/', function () {
-    return 'working';
+    return redirect()->route('mobile.login');
 });
 
 // Test API connection

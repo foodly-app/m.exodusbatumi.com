@@ -100,6 +100,8 @@ class MobileAuthController extends Controller
             // Simulate successful login with proper data structure
             session([
                 'partner_token' => 'temp_token_123',
+                'partner_organization_id' => '1',
+                'partner_restaurant_id' => '1',
                 'partner_user' => [
                     'id' => 1, 
                     'name' => 'Manager', 
