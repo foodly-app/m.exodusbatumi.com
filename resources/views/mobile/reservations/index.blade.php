@@ -8,7 +8,7 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4 class="mb-0"><i class="bi bi-calendar-check"></i> ჩემი რეზერვაციები</h4>
-                <a href="{{ route('mobile.booking.restaurants') }}" class="btn btn-primary">
+                {{-- <a href="{{ route('mobile.booking.restaurants') }}" class="btn btn-primary"> --}}
                     <i class="bi bi-plus-circle"></i> ახალი ჯავშანი
                 </a>
             </div>
@@ -32,7 +32,7 @@
                     </a>
                 </div>
 
-                @if($reservations->count() > 0)
+                @if(is_array($reservations) && count($reservations) > 0)
                     <div class="row">
                         @foreach($reservations as $reservation)
                         <div class="col-md-6 mb-3">

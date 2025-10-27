@@ -11,118 +11,55 @@ class OrganizationService
     ) {}
 
     /**
-     * Get list of organizations
+     * Get user's organizations list
      *
-     * @param array $query
      * @return array
      * @throws Exception
      */
-    public function list(array $query = []): array
+    public function getOrganizations(): array
     {
-        return $this->client->get('/api/partner/organizations', $query);
+        return $this->client->get('/api/partner/organizations');
     }
 
     /**
-     * Get organization by ID
+     * Get organization details
      *
-     * @param int $id
+     * @param int $organizationId
      * @return array
      * @throws Exception
      */
-    public function get(int $id): array
+    public function getOrganization(int $organizationId): array
     {
-        return $this->client->get("/api/partner/organizations/{$id}");
+        return $this->client->get("/api/partner/organizations/{$organizationId}");
     }
 
     /**
-     * Update organization details
+     * Update organization
      *
-     * @param int $id
+     * @param int $organizationId
      * @param array $data
      * @return array
      * @throws Exception
      */
-    public function update(int $id, array $data): array
+    public function updateOrganization(int $organizationId, array $data): array
     {
-        return $this->client->put("/api/partner/organizations/{$id}", $data);
+        return $this->client->put("/api/partner/organizations/{$organizationId}", $data);
     }
 
     /**
-     * Get organization's statistics
+     * Get organization team members
      *
-     * @param int $id
+     * @param int $organizationId
      * @return array
      * @throws Exception
      */
-    public function getStatistics(int $id): array
+    public function getTeamMembers(int $organizationId): array
     {
-        return $this->client->get("/api/partner/organizations/{$id}/statistics");
+        return $this->client->get("/api/partner/organizations/{$organizationId}/team");
     }
 
     /**
-     * Get organization's restaurants
-     *
-     * @param int $id
-     * @param array $query
-     * @return array
-     * @throws Exception
-     */
-    public function getRestaurants(int $id, array $query = []): array
-    {
-        return $this->client->get("/api/partner/organizations/{$id}/restaurants", $query);
-    }
-
-    /**
-     * Get organization dashboard
-     *
-     * @param int $id
-     * @return array
-     * @throws Exception
-     */
-    public function getDashboard(int $id): array
-    {
-        return $this->client->get("/api/partner/organizations/{$id}/dashboard");
-    }
-
-    /**
-     * Get organization dashboard stats
-     *
-     * @param int $id
-     * @param array $query
-     * @return array
-     * @throws Exception
-     */
-    public function getDashboardStats(int $id, array $query = []): array
-    {
-        return $this->client->get("/api/partner/organizations/{$id}/dashboard/stats", $query);
-    }
-
-    /**
-     * Get organization dashboard overview
-     *
-     * @param int $id
-     * @return array
-     * @throws Exception
-     */
-    public function getDashboardOverview(int $id): array
-    {
-        return $this->client->get("/api/partner/organizations/{$id}/dashboard/overview");
-    }
-
-    /**
-     * Get team members
-     *
-     * @param int $id
-     * @return array
-     * @throws Exception
-     */
-    public function getTeam(int $id): array
-    {
-        return $this->client->get("/api/partner/organizations/{$id}/team");
-    }
-
-    /**
-     * Get team member
+     * Get team member details
      *
      * @param int $organizationId
      * @param int $userId
@@ -152,13 +89,15 @@ class OrganizationService
      *
      * @param int $organizationId
      * @param int $userId
-     * @param array $data
+     * @param string $role
      * @return array
      * @throws Exception
      */
-    public function updateTeamMemberRole(int $organizationId, int $userId, array $data): array
+    public function updateTeamMemberRole(int $organizationId, int $userId, string $role): array
     {
-        return $this->client->put("/api/partner/organizations/{$organizationId}/team/{$userId}/role", $data);
+        return $this->client->put("/api/partner/organizations/{$organizationId}/team/{$userId}/role", [
+            'role' => $role
+        ]);
     }
 
     /**
@@ -175,7 +114,7 @@ class OrganizationService
     }
 
     /**
-     * Get invitations
+     * Get organization invitations
      *
      * @param int $organizationId
      * @return array
@@ -200,67 +139,296 @@ class OrganizationService
     }
 
     /**
-     * Get analytics - reservations
+     * Resend invitation
      *
-     * @param int $organizationId
-     * @param array $query
+     * @param int $invitationId
      * @return array
      * @throws Exception
      */
-    public function getAnalyticsReservations(int $organizationId, array $query = []): array
+    public function resendInvitation(int $invitationId): array
     {
-        return $this->client->get("/api/partner/organizations/{$organizationId}/analytics/reservations", $query);
+        return $this->client->post("/api/partner/invitations/{$invitationId}/resend");
     }
 
     /**
-     * Get analytics - revenue
+     * Delete invitation
      *
-     * @param int $organizationId
-     * @param array $query
+     * @param int $invitationId
      * @return array
      * @throws Exception
      */
-    public function getAnalyticsRevenue(int $organizationId, array $query = []): array
+    public function deleteInvitation(int $invitationId): array
     {
-        return $this->client->get("/api/partner/organizations/{$organizationId}/analytics/revenue", $query);
+        return $this->client->delete("/api/partner/invitations/{$invitationId}");
     }
 
     /**
-     * Get analytics - popular tables
+     * Get organization restaurants
      *
      * @param int $organizationId
-     * @param array $query
      * @return array
      * @throws Exception
      */
-    public function getAnalyticsPopularTables(int $organizationId, array $query = []): array
+    public function getRestaurants(int $organizationId): array
     {
-        return $this->client->get("/api/partner/organizations/{$organizationId}/analytics/popular-tables", $query);
+        return $this->client->get("/api/partner/organizations/{$organizationId}/restaurants");
     }
 
     /**
-     * Get analytics - peak hours
+     * Get mobile-optimized organization data
      *
      * @param int $organizationId
-     * @param array $query
      * @return array
-     * @throws Exception
      */
-    public function getAnalyticsPeakHours(int $organizationId, array $query = []): array
+    public function getMobileOrganizationData(int $organizationId): array
     {
-        return $this->client->get("/api/partner/organizations/{$organizationId}/analytics/peak-hours", $query);
+        try {
+            $organization = $this->getOrganization($organizationId);
+            
+            if (!$organization['success']) {
+                return $organization;
+            }
+
+            $orgData = $organization['data'];
+
+            // Format for mobile consumption
+            return [
+                'success' => true,
+                'data' => [
+                    'id' => $orgData['id'],
+                    'name' => $orgData['name'],
+                    'description' => $orgData['description'] ?? '',
+                    'role' => $orgData['role'],
+                    'can_edit' => in_array($orgData['role'], ['owner', 'manager']),
+                    'can_delete_staff' => $orgData['role'] === 'owner',
+                    'can_invite_staff' => in_array($orgData['role'], ['owner', 'manager']),
+                    'restaurants' => collect($orgData['restaurants'] ?? [])->map(function ($restaurant) {
+                        return [
+                            'id' => $restaurant['id'],
+                            'name' => $restaurant['name'],
+                            'status' => $restaurant['status'],
+                            'status_badge' => $this->getStatusBadgeClass($restaurant['status']),
+                            'can_manage' => $restaurant['status'] === 'active'
+                        ];
+                    })->toArray(),
+                    'team' => collect($orgData['team'] ?? [])->map(function ($member) use ($orgData) {
+                        return [
+                            'id' => $member['id'],
+                            'name' => $member['name'],
+                            'email' => $member['email'],
+                            'role' => $member['role'],
+                            'role_display' => $this->getRoleDisplay($member['role']),
+                            'role_badge' => $this->getRoleBadgeClass($member['role']),
+                            'can_edit' => $orgData['role'] === 'owner' || 
+                                        ($orgData['role'] === 'manager' && $member['role'] !== 'owner'),
+                            'can_delete' => $orgData['role'] === 'owner' && $member['role'] !== 'owner'
+                        ];
+                    })->toArray(),
+                    'counts' => [
+                        'restaurants' => count($orgData['restaurants'] ?? []),
+                        'team_members' => count($orgData['team'] ?? []),
+                        'active_restaurants' => collect($orgData['restaurants'] ?? [])->where('status', 'active')->count()
+                    ]
+                ]
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
     }
 
     /**
-     * Get analytics - customer insights
+     * Get mobile team management data
      *
      * @param int $organizationId
-     * @param array $query
      * @return array
-     * @throws Exception
      */
-    public function getAnalyticsCustomerInsights(int $organizationId, array $query = []): array
+    public function getMobileTeamData(int $organizationId): array
     {
-        return $this->client->get("/api/partner/organizations/{$organizationId}/analytics/customer-insights", $query);
+        try {
+            // Get team members and invitations in parallel
+            $teamResponse = $this->getTeamMembers($organizationId);
+            $invitationsResponse = $this->getInvitations($organizationId);
+
+            if (!$teamResponse['success']) {
+                return $teamResponse;
+            }
+
+            $team = $teamResponse['data'];
+            $invitations = $invitationsResponse['success'] ? $invitationsResponse['data'] : [];
+
+            return [
+                'success' => true,
+                'data' => [
+                    'active_members' => collect($team)->map(function ($member) {
+                        return [
+                            'id' => $member['id'],
+                            'name' => $member['name'],
+                            'email' => $member['email'],
+                            'role' => $member['role'],
+                            'role_display' => $this->getRoleDisplay($member['role']),
+                            'role_badge' => $this->getRoleBadgeClass($member['role']),
+                            'avatar_url' => $member['avatar_url'] ?? null,
+                            'joined_at' => $member['joined_at'] ?? null,
+                            'formatted_joined_date' => isset($member['joined_at']) ? 
+                                \Carbon\Carbon::parse($member['joined_at'])->locale('ka')->format('d M, Y') : null,
+                            'status' => $member['status'] ?? 'active'
+                        ];
+                    })->toArray(),
+                    'pending_invitations' => collect($invitations)->map(function ($invitation) {
+                        return [
+                            'id' => $invitation['id'],
+                            'email' => $invitation['email'],
+                            'role' => $invitation['role'],
+                            'role_display' => $this->getRoleDisplay($invitation['role']),
+                            'status' => $invitation['status'],
+                            'sent_at' => $invitation['sent_at'],
+                            'expires_at' => $invitation['expires_at'],
+                            'formatted_sent_date' => \Carbon\Carbon::parse($invitation['sent_at'])->locale('ka')->format('d M, Y H:i'),
+                            'is_expired' => \Carbon\Carbon::parse($invitation['expires_at'])->isPast()
+                        ];
+                    })->toArray(),
+                    'counts' => [
+                        'total_members' => count($team),
+                        'pending_invitations' => count($invitations),
+                        'owners' => collect($team)->where('role', 'owner')->count(),
+                        'managers' => collect($team)->where('role', 'manager')->count(),
+                        'staff' => collect($team)->where('role', 'staff')->count()
+                    ]
+                ]
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get available roles for mobile selection
+     *
+     * @return array
+     */
+    public function getAvailableRoles(): array
+    {
+        return [
+            'owner' => [
+                'value' => 'owner',
+                'display' => 'მფლობელი',
+                'description' => 'სრული წვდომა ყველაფერზე',
+                'permissions' => ['all']
+            ],
+            'manager' => [
+                'value' => 'manager',
+                'display' => 'მენეჯერი',
+                'description' => 'მართვა და რედაქტირება (გარდა წაშლისა)',
+                'permissions' => ['view', 'edit', 'create']
+            ],
+            'staff' => [
+                'value' => 'staff',
+                'display' => 'თანამშრომელი',
+                'description' => 'მხოლოდ ნახვის უფლება',
+                'permissions' => ['view']
+            ]
+        ];
+    }
+
+    /**
+     * Get role display name
+     *
+     * @param string $role
+     * @return string
+     */
+    private function getRoleDisplay(string $role): string
+    {
+        $roles = $this->getAvailableRoles();
+        return $roles[$role]['display'] ?? ucfirst($role);
+    }
+
+    /**
+     * Get role badge CSS class
+     *
+     * @param string $role
+     * @return string
+     */
+    private function getRoleBadgeClass(string $role): string
+    {
+        return match ($role) {
+            'owner' => 'badge bg-primary',
+            'manager' => 'badge bg-success',
+            'staff' => 'badge bg-secondary',
+            default => 'badge bg-light text-dark'
+        };
+    }
+
+    /**
+     * Get status badge CSS class
+     *
+     * @param string $status
+     * @return string
+     */
+    private function getStatusBadgeClass(string $status): string
+    {
+        return match ($status) {
+            'active' => 'badge bg-success',
+            'inactive' => 'badge bg-warning',
+            'closed' => 'badge bg-danger',
+            default => 'badge bg-secondary'
+        };
+    }
+
+    /**
+     * Validate team member data
+     *
+     * @param array $data
+     * @return array
+     */
+    public function validateTeamMemberData(array $data): array
+    {
+        $errors = [];
+
+        // Required fields
+        $requiredFields = [
+            'name' => 'Name is required',
+            'email' => 'Email is required',
+            'role' => 'Role is required'
+        ];
+
+        foreach ($requiredFields as $field => $message) {
+            if (!isset($data[$field]) || empty($data[$field])) {
+                $errors[$field] = $message;
+            }
+        }
+
+        // Email validation
+        if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Invalid email format';
+        }
+
+        // Role validation
+        $availableRoles = array_keys($this->getAvailableRoles());
+        if (isset($data['role']) && !in_array($data['role'], $availableRoles)) {
+            $errors['role'] = 'Invalid role selected';
+        }
+
+        // Password validation for new members
+        if (isset($data['password'])) {
+            if (strlen($data['password']) < 8) {
+                $errors['password'] = 'Password must be at least 8 characters';
+            }
+            if (!isset($data['password_confirmation']) || $data['password'] !== $data['password_confirmation']) {
+                $errors['password_confirmation'] = 'Password confirmation does not match';
+            }
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors
+        ];
     }
 }

@@ -11,241 +11,222 @@ class ReservationService
     ) {}
 
     /**
-     * Get list of all reservations
+     * Get reservations list for mobile with pagination
      *
-     * @param int|null $organizationId
-     * @param int|null $restaurantId
-     * @param array $query
-     * @return array
      * @throws Exception
      */
-    public function list(?int $organizationId = null, ?int $restaurantId = null, array $query = []): array
+    public function getReservations(int $organizationId, int $restaurantId, array $filters = []): array
     {
-        if ($organizationId && $restaurantId) {
-            // Call Partner API endpoint
-            return $this->client->get("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations", $query);
-        }
-        
-        // Fallback to general reservations endpoint
-        return $this->client->get('/api/partner/reservations', $query);
-    }
+        $params = array_merge([
+            'page' => 1,
+            'per_page' => 20,
+        ], $filters);
 
-        /**
-     * Get reservations calendar
-     *
-     * @param array $query
-     * @return array
-     * @throws Exception
-     */
-    public function calendar(array $query = []): array
-    {
-        // If organization_id and restaurant_id are in query params, use the scoped endpoint
-        if (isset($query['organization_id']) && isset($query['restaurant_id'])) {
-            $orgId = $query['organization_id'];
-            $restId = $query['restaurant_id'];
-            unset($query['organization_id'], $query['restaurant_id']);
-            
-            return $this->client->get("/api/partner/organizations/{$orgId}/restaurants/{$restId}/reservations/calendar", $query);
-        }
-        
-        // Otherwise use the global endpoint
-        return $this->client->get('/api/partner/reservations/calendar', $query);
+        return $this->client->get("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations", $params);
     }
 
     /**
-     * Get reservation by ID
+     * Get single reservation details
      *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @return array
      * @throws Exception
      */
-    public function get(int $organizationId, int $restaurantId, int $id): array
+    public function getReservation(int $organizationId, int $restaurantId, int $reservationId): array
     {
-        return $this->client->get("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}");
-    }
-
-    /**
-     * Create reservation
-     *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param array $data
-     * @return array
-     * @throws Exception
-     */
-    public function create(int $organizationId, int $restaurantId, array $data): array
-    {
-        return $this->client->post("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations", $data);
-    }
-
-    /**
-     * Update reservation details
-     *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @param array $data
-     * @return array
-     * @throws Exception
-     */
-    public function update(int $organizationId, int $restaurantId, int $id, array $data): array
-    {
-        return $this->client->put("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}", $data);
+        return $this->client->get("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$reservationId}");
     }
 
     /**
      * Update reservation status
      *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @param array $data
-     * @return array
      * @throws Exception
      */
-    public function updateStatus(int $organizationId, int $restaurantId, int $id, array $data): array
+    public function updateStatus(int $organizationId, int $restaurantId, int $reservationId, string $status, ?string $reason = null): array
     {
-        return $this->client->put("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}/status", $data);
+        $data = ['status' => $status];
+
+        if ($reason) {
+            $data['reason'] = $reason;
+        }
+
+        return $this->client->put("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$reservationId}/status", $data);
     }
 
     /**
-     * Confirm reservation
+     * Confirm reservation (quick action)
      *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @return array
      * @throws Exception
      */
-    public function confirm(int $organizationId, int $restaurantId, int $id): array
+    public function confirm(int $organizationId, int $restaurantId, int $reservationId): array
     {
-        return $this->client->put("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}/confirm");
+        return $this->client->post("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$reservationId}/confirm");
     }
 
     /**
      * Cancel reservation
      *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @param array $data
-     * @return array
      * @throws Exception
      */
-    public function cancel(int $organizationId, int $restaurantId, int $id, array $data = []): array
+    public function cancel(int $organizationId, int $restaurantId, int $reservationId, ?string $reason = null): array
     {
-        return $this->client->put("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}/cancel", $data);
+        $data = $reason ? ['reason' => $reason] : [];
+
+        return $this->client->post("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$reservationId}/cancel", $data);
     }
 
     /**
      * Mark reservation as paid
      *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @return array
      * @throws Exception
      */
-    public function markAsPaid(int $organizationId, int $restaurantId, int $id): array
+    public function markAsPaid(int $organizationId, int $restaurantId, int $reservationId): array
     {
-        return $this->client->put("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}/paid");
+        return $this->client->post("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$reservationId}/paid");
     }
 
     /**
-     * Complete reservation
+     * Mark reservation as completed
      *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @return array
      * @throws Exception
      */
-    public function complete(int $organizationId, int $restaurantId, int $id): array
+    public function markAsCompleted(int $organizationId, int $restaurantId, int $reservationId): array
     {
-        return $this->client->put("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}/complete");
+        return $this->client->post("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$reservationId}/complete");
     }
 
     /**
      * Mark reservation as no-show
      *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @return array
      * @throws Exception
      */
-    public function noShow(int $organizationId, int $restaurantId, int $id): array
+    public function markAsNoShow(int $organizationId, int $restaurantId, int $reservationId): array
     {
-        return $this->client->put("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}/no-show");
+        return $this->client->post("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$reservationId}/no-show");
     }
 
     /**
-     * Assign table to reservation
+     * Initiate payment for reservation
      *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @param array $data
-     * @return array
      * @throws Exception
      */
-    public function assignTable(int $organizationId, int $restaurantId, int $id, array $data): array
+    public function initiatePayment(int $organizationId, int $restaurantId, int $reservationId, float $amount, string $returnUrl): array
     {
-        return $this->client->put("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}/assign-table", $data);
+        return $this->client->post("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$reservationId}/initiate-payment", [
+            'amount' => $amount,
+            'return_url' => $returnUrl,
+        ]);
     }
 
     /**
-     * Get reservation statistics
+     * Get reservations by place
      *
-     * @param array $query
-     * @return array
      * @throws Exception
      */
-    public function statistics(array $query = []): array
+    public function getReservationsByPlace(int $organizationId, int $restaurantId, int $placeId, array $filters = []): array
     {
-        return $this->client->get('/api/partner/reservations/statistics', $query);
+        return $this->client->get("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/places/{$placeId}/reservations", $filters);
     }
 
     /**
-     * Search reservations
-     *
-     * @param array $query
-     * @return array
-     * @throws Exception
+     * Get mobile-optimized reservation list
      */
-    public function search(array $query = []): array
+    public function getMobileReservationList(int $organizationId, int $restaurantId, array $filters = []): array
     {
-        return $this->client->get('/api/partner/reservations/search', $query);
+        try {
+            // Default filters for mobile optimization
+            $mobileFilters = array_merge([
+                'per_page' => 15, // Smaller page size for mobile
+                'date_from' => now()->format('Y-m-d'), // Start from today by default
+            ], $filters);
+
+            $response = $this->getReservations($organizationId, $restaurantId, $mobileFilters);
+
+            if ($response['success']) {
+                // Format data for mobile consumption
+                $reservations = collect($response['data'])->map(function ($reservation) {
+                    return [
+                        'id' => $reservation['id'],
+                        'reservation_number' => $reservation['reservation_number'],
+                        'customer_name' => $reservation['customer_name'],
+                        'customer_phone' => $reservation['customer_phone'],
+                        'party_size' => $reservation['party_size'],
+                        'date' => $reservation['date'],
+                        'time' => $reservation['time'],
+                        'status' => $reservation['status'],
+                        'table' => $reservation['table'] ?? null,
+                        'payment_status' => $reservation['payment_status'] ?? 'pending',
+                        'formatted_date' => \Carbon\Carbon::parse($reservation['date'])->locale('ka')->format('d M, Y'),
+                        'formatted_time' => \Carbon\Carbon::parse($reservation['time'])->format('H:i'),
+                        'status_badge_class' => $this->getStatusBadgeClass($reservation['status']),
+                        'can_confirm' => $reservation['status'] === 'pending',
+                        'can_cancel' => in_array($reservation['status'], ['pending', 'confirmed']),
+                        'can_complete' => $reservation['status'] === 'confirmed',
+                    ];
+                });
+
+                return [
+                    'success' => true,
+                    'data' => $reservations->toArray(),
+                    'meta' => $response['meta'] ?? null,
+                ];
+            }
+
+            return $response;
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
     }
 
     /**
-     * Add note to reservation
-     *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @param array $data
-     * @return array
-     * @throws Exception
+     * Get status badge CSS class for mobile UI
      */
-    public function addNote(int $organizationId, int $restaurantId, int $id, array $data): array
+    private function getStatusBadgeClass(string $status): string
     {
-        return $this->client->post("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}/notes", $data);
+        return match ($status) {
+            'pending' => 'badge bg-warning',
+            'confirmed' => 'badge bg-success',
+            'cancelled' => 'badge bg-danger',
+            'completed' => 'badge bg-primary',
+            'no-show' => 'badge bg-secondary',
+            default => 'badge bg-light text-dark',
+        };
     }
 
     /**
-     * Delete reservation
-     *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @return array
-     * @throws Exception
+     * Get reservation counts by status for mobile dashboard
      */
-    public function delete(int $organizationId, int $restaurantId, int $id): array
+    public function getStatusCounts(int $organizationId, int $restaurantId, array $dateRange = []): array
     {
-        return $this->client->delete("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/{$id}");
+        try {
+            $filters = array_merge([
+                'date_from' => $dateRange['from'] ?? now()->format('Y-m-d'),
+                'date_to' => $dateRange['to'] ?? now()->addDays(7)->format('Y-m-d'),
+            ], $dateRange);
+
+            $stats = $this->client->get("/api/partner/organizations/{$organizationId}/restaurants/{$restaurantId}/reservations/statistics", $filters);
+
+            if ($stats['success']) {
+                return [
+                    'success' => true,
+                    'data' => [
+                        'total' => $stats['data']['total_reservations'],
+                        'pending' => $stats['data']['pending'],
+                        'confirmed' => $stats['data']['confirmed'],
+                        'cancelled' => $stats['data']['cancelled'],
+                        'completed' => $stats['data']['completed'],
+                        'no_show' => $stats['data']['no_show'],
+                    ],
+                ];
+            }
+
+            return $stats;
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
     }
 }

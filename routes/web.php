@@ -3,34 +3,23 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\TestController;
 
 
 Route::get('/', function () {
     return redirect()->route('mobile.login');
 });
 
-// Test API connection
-Route::get('/test-api', function () {
-    $apiUrl = config('services.partner.url');
-    $testUrl = $apiUrl . '/api/partner/test';
+// Test routes
+Route::prefix('test')->group(function () {
+    Route::get('/auth', [TestController::class, 'testAuth'])->name('test.auth');
+    Route::get('/token', [TestController::class, 'testToken'])->name('test.token');
+    Route::get('/api', [TestController::class, 'testApi'])->name('test.api');
     
-    try {
-        $response = Http::timeout(10)->get($testUrl);
-        
-        return response()->json([
-            'api_url' => $apiUrl,
-            'test_url' => $testUrl,
-            'status' => $response->status(),
-            'success' => $response->successful(),
-            'body' => $response->body()
-        ]);
-    } catch (Exception $e) {
-        return response()->json([
-            'api_url' => $apiUrl,
-            'error' => $e->getMessage(),
-            'success' => false
-        ]);
-    }
+    // Test new implementations
+    Route::get('/profile', [TestController::class, 'testProfile'])->name('test.profile');
+    Route::get('/reservations', [TestController::class, 'testReservations'])->name('test.reservations');
+    Route::get('/settings', [TestController::class, 'testSettings'])->name('test.settings');
 });
 
 // Clear all Laravel caches

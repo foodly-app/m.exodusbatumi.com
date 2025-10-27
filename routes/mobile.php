@@ -3,10 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MobileAuthController;
 use App\Http\Controllers\MobileDashboardController;
-use App\Http\Controllers\MobileReservationController;
 use App\Http\Controllers\MobileBookingController;
 use App\Http\Controllers\MobileOrganizationController;
 use App\Http\Controllers\MobileRestaurantController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,22 +33,50 @@ Route::prefix('mobile')->name('mobile.')->middleware(['web', 'mobile.auth'])->gr
     Route::post('/logout', [MobileAuthController::class, 'logout'])->name('logout');
     Route::get('/check-auth', [MobileAuthController::class, 'checkAuth'])->name('check-auth');
     
-    // Profile management
-    Route::get('/profile', [MobileAuthController::class, 'profile'])->name('profile');
-    Route::put('/profile', [MobileAuthController::class, 'updateProfile'])->name('profile.update');
+    // Dashboard
+    Route::get('/dashboard', [MobileAuthController::class, 'dashboard'])->name('dashboard');
+    
+    // Profile management (simplified)
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.avatar.upload');
+    Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.avatar.delete');
+    Route::put('/profile/password', [ProfileController::class, 'changePassword'])->name('profile.password');
+    
+    // Settings (simplified)
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::get('/settings/restaurant', [SettingsController::class, 'restaurant'])->name('settings.restaurant');
+    Route::put('/settings/restaurant', [SettingsController::class, 'updateSettings'])->name('settings.restaurant.update');
+    Route::get('/settings/working-hours', [SettingsController::class, 'workingHours'])->name('settings.working-hours');
+    Route::put('/settings/working-hours', [SettingsController::class, 'updateWorkingHours'])->name('settings.working-hours.update');
+    
+    // Reservations (simplified - uses selected restaurant from session)
+    Route::get('/reservations', [ReservationController::class, 'indexSimplified'])->name('reservations.index');
+    Route::get('/reservations/{id}', [ReservationController::class, 'show'])->name('reservations.show');
+    Route::post('/reservations/{id}/confirm', [ReservationController::class, 'confirm'])->name('reservations.confirm');
+    Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+    
+    // Booking (simplified - uses session data)
+    Route::get('/booking/restaurants', [MobileBookingController::class, 'restaurantsSimplified'])->name('booking.restaurants');
+    
+    // Old profile management routes (keep for backward compatibility)
+    Route::get('/profile-old', [MobileAuthController::class, 'profile'])->name('profile.old');
+    Route::put('/profile-old', [MobileAuthController::class, 'updateProfile'])->name('profile.update.old');
     Route::post('/profile/avatar', [MobileAuthController::class, 'uploadAvatar'])->name('profile.upload-avatar');
     Route::delete('/profile/avatar', [MobileAuthController::class, 'deleteAvatar'])->name('profile.delete-avatar');
     Route::put('/profile/password', [MobileAuthController::class, 'changePassword'])->name('profile.change-password');
     
     // Dashboard routes
-    Route::get('/dashboard/{organization?}/{restaurant?}', function () {
-        return view('mobile.dashboard-simple');
-    })->name('dashboard');
+    // Route::get('/dashboard/{organization?}/{restaurant?}', function () {
+    //     return view('mobile.dashboard-simple');
+    // })->name('dashboard');
     
+
+    Route::get('/reservations/', [ReservationController::class, 'index'])->name('reservations.index');
     // Simple reservations route (without organization/restaurant parameters)
-    Route::get('/reservations', function () {
-        return view('mobile.reservations.index-simple');
-    })->name('reservations.index');
+    // Route::get('/reservations', function () {
+    //     return view('mobile.reservations.index-simple');
+    // })->name('reservations.index');
     
     // Settings routes
     Route::prefix('settings')->name('settings.')->group(function () {
@@ -145,22 +175,22 @@ Route::prefix('mobile')->name('mobile.')->middleware(['web', 'mobile.auth'])->gr
         Route::get('/reservations/list', function () {
             return view('mobile.reservations.index-simple');
         })->name('reservations.list');
-        Route::get('/reservations/upcoming', [MobileReservationController::class, 'upcoming'])->name('reservations.upcoming');
-        Route::get('/reservations/data', [MobileReservationController::class, 'getReservations'])->name('reservations.data');
-        Route::get('/reservations/counts', [MobileReservationController::class, 'getStatusCounts'])->name('reservations.counts');
-        Route::get('/reservations/{reservation}', [MobileReservationController::class, 'show'])->name('reservations.show');
+        Route::get('/reservations/upcoming', [ReservationController::class, 'upcoming'])->name('reservations.upcoming');
+        Route::get('/reservations/data', [ReservationController::class, 'getReservations'])->name('reservations.data');
+        Route::get('/reservations/counts', [ReservationController::class, 'getStatusCounts'])->name('reservations.counts');
+        Route::get('/reservations/{reservation}', [ReservationController::class, 'show'])->name('reservations.show');
         
         // Reservation actions
-        Route::post('/reservations/{reservation}/confirm', [MobileReservationController::class, 'confirm'])->name('reservations.confirm');
-        Route::post('/reservations/{reservation}/cancel', [MobileReservationController::class, 'cancel'])->name('reservations.cancel');
-        Route::post('/reservations/{reservation}/paid', [MobileReservationController::class, 'markAsPaid'])->name('reservations.mark-paid');
-        Route::post('/reservations/{reservation}/complete', [MobileReservationController::class, 'markAsCompleted'])->name('reservations.mark-completed');
-        Route::post('/reservations/{reservation}/no-show', [MobileReservationController::class, 'markAsNoShow'])->name('reservations.mark-no-show');
-        Route::put('/reservations/{reservation}/status', [MobileReservationController::class, 'updateStatus'])->name('reservations.update-status');
-        Route::post('/reservations/{reservation}/payment', [MobileReservationController::class, 'initiatePayment'])->name('reservations.initiate-payment');
+        Route::post('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm'])->name('reservations.confirm');
+        Route::post('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+        Route::post('/reservations/{reservation}/paid', [ReservationController::class, 'markAsPaid'])->name('reservations.mark-paid');
+        Route::post('/reservations/{reservation}/complete', [ReservationController::class, 'markAsCompleted'])->name('reservations.mark-completed');
+        Route::post('/reservations/{reservation}/no-show', [ReservationController::class, 'markAsNoShow'])->name('reservations.mark-no-show');
+        Route::put('/reservations/{reservation}/status', [ReservationController::class, 'updateStatus'])->name('reservations.update-status');
+        Route::post('/reservations/{reservation}/payment', [ReservationController::class, 'initiatePayment'])->name('reservations.initiate-payment');
         
         // Bulk actions
-        Route::post('/reservations/bulk-action', [MobileReservationController::class, 'bulkAction'])->name('reservations.bulk-action');
+        Route::post('/reservations/bulk-action', [ReservationController::class, 'bulkAction'])->name('reservations.bulk-action');
     });
     
     // Booking management (partner-assisted)

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\MobileAuthService;
+use App\Services\AuthService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -12,7 +12,7 @@ use Illuminate\View\View;
 class MobileAuthController extends Controller
 {
     public function __construct(
-        private readonly MobileAuthService $authService
+        private readonly AuthService $authService
     ) {}
 
     /**
@@ -94,60 +94,19 @@ class MobileAuthController extends Controller
             'email' => 'required|email',
             'password' => 'required|string|min:6'
         ]);
-
-        // TEMPORARY: Manual check for your specific credentials
-        if ($request->email === 'manager@exodusrestaurant.com' && $request->password === 'Manager_321') {
-            // Simulate successful login with proper data structure
-            session([
-                'partner_token' => 'temp_token_123',
-                'partner_organization_id' => '1',
-                'partner_restaurant_id' => '1',
-                'partner_user' => [
-                    'id' => 1, 
-                    'name' => 'Manager', 
-                    'email' => 'manager@exodusrestaurant.com',
-                    'phone' => '599123456'
-                ]
-            ]);
-            
-            // Redirect directly to simple dashboard view
-            return view('mobile.dashboard-simple')->with('success', 'ტემპორალური შესვლა წარმატებული!');
-        }
         
         try {
+            // Authenticate user
             $response = $this->authService->login($request->only('email', 'password'));
 
             if ($response['success']) {
-                // Get initial dashboard data to determine redirect
-                $dashboardData = $this->authService->initialDashboard();
-                
-                if ($dashboardData['success']) {
-                    $data = $dashboardData['data'];
-                    
-                    // Store selected organization in session
-                    session(['selected_organization' => $data['organization_id']]);
-                    
-                    // Redirect based on response
-                    if ($data['redirect_to'] === 'organization' && isset($data['restaurant_id'])) {
-                        return redirect()->route('mobile.dashboard', [
-                            'organization' => $data['organization_id'],
-                            'restaurant' => $data['restaurant_id']
-                        ]);
-                    }
-                    
-                    return redirect()->route('mobile.dashboard', [
-                        'organization' => $data['organization_id']
-                    ]);
-                }
-                
-                // Fallback to general dashboard
-                return redirect()->route('mobile.dashboard');
+                // Redirect to dashboard - it will load initial data
+                return redirect()->route('mobile.dashboard')
+                    ->with('success', 'წარმატებით შეხვედით სისტემაში!');
             }
 
-
-
             // Show specific error message if available
-            $errorMessage = $response['message'] ?? 'Login failed. Please try again.';
+            $errorMessage = $response['message'] ?? 'ავტორიზაცია ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.';
             
             return back()->withErrors([
                 'email' => $errorMessage
@@ -179,6 +138,47 @@ class MobileAuthController extends Controller
                 'user' => $this->authService->user(),
                 'success' => false,
                 'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Show dashboard with initial data
+     *
+     * @return View|RedirectResponse
+     */
+    public function dashboard()
+    {
+        try {
+            // Get initial dashboard data from API
+            $dashboardData = $this->authService->getInitialDashboard();
+            
+            if (!$dashboardData['success']) {
+                return view('mobile.dashboard-simple', [
+                    'error' => $dashboardData['message'] ?? 'დაფიქსირდა შეცდომა მონაცემების ჩატვირთვისას'
+                ]);
+            }
+            
+            $data = $dashboardData['data'];
+            
+            // Pass all initial dashboard data to view
+            return view('mobile.dashboard-simple', [
+                'user' => $data['user'] ?? null,
+                'organization' => $data['organization'] ?? null,
+                'restaurants' => $data['restaurants'] ?? [],
+                'selectedRestaurant' => $data['selected_restaurant'] ?? null,
+                'dashboard' => $data['dashboard'] ?? null,
+                'error' => null
+            ]);
+            
+        } catch (Exception $e) {
+            Log::error('Dashboard load failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return view('mobile.dashboard-simple', [
+                'error' => 'დაფიქსირდა შეცდომა: ' . $e->getMessage()
             ]);
         }
     }

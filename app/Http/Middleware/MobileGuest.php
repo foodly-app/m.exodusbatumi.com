@@ -4,12 +4,12 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use App\Services\MobileAuthService;
+use App\Services\AuthService;
 
 class MobileGuest
 {
     public function __construct(
-        private readonly MobileAuthService $authService
+        private readonly AuthService $authService
     ) {}
 
     /**

@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Exception;
 
-class MobileDashboardService
+class DashboardService
 {
     public function __construct(
         private readonly HttpClient $client

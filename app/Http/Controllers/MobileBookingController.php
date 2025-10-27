@@ -16,6 +16,29 @@ class MobileBookingController extends Controller
     ) {}
 
     /**
+     * Show restaurants list for booking (simplified - uses session)
+     *
+     * @param Request $request
+     * @return View|\Illuminate\Http\RedirectResponse
+     */
+    public function restaurantsSimplified(Request $request)
+    {
+        // Get dashboard data from session
+        $dashboardData = session('dashboard_data');
+        
+        if (!$dashboardData) {
+            return redirect()->route('mobile.dashboard')
+                ->with('error', 'გთხოვთ, ჯერ გაიაროთ ავტორიზაცია');
+        }
+        
+        return view('mobile.booking.restaurants', [
+            'restaurants' => $dashboardData['restaurants'] ?? [],
+            'organizationId' => $dashboardData['organization']['id'] ?? null,
+            'error' => null
+        ]);
+    }
+
+    /**
      * Show restaurants list for booking
      *
      * @param Request $request

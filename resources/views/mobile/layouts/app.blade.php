@@ -20,482 +20,8 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <style>
-        :root {
-            --foodly-primary: #3232ff;
-            --foodly-dark: #070738;
-            --foodly-red: #ff4500;
-            --foodly-light: #f5f9fc;
-        }
-        
-        * {
-            font-family: 'Noto Sans Georgian', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        body {
-            background-color: var(--foodly-light);
-            min-height: 100vh;
-            padding-bottom: 80px; /* Space for bottom nav */
-            overflow-x: hidden;
-        }
-        
-        /* Mobile-First Navigation */
-        .mobile-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1030;
-            background: linear-gradient(135deg, var(--foodly-primary) 0%, var(--foodly-dark) 100%);
-            box-shadow: 0 2px 20px rgba(7, 7, 56, 0.2);
-            height: 60px;
-        }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 100%;
-            padding: 0 1rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header-logo {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-        }
-        
-        .header-logo img {
-            height: 36px;
-            width: auto;
-            transition: transform 0.2s ease;
-        }
-        
-        .header-logo:active img {
-            transform: scale(0.95);
-        }
-        
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .header-icon {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .header-icon:hover,
-        .header-icon:active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-        
-        .header-actions .btn-light {
-            background: rgba(255, 255, 255, 0.95);
-            border: none;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            transition: all 0.2s ease;
-        }
-        
-        .header-actions .btn-light:hover,
-        .header-actions .btn-light:active {
-            background: white;
-            transform: scale(0.95);
-        }
-        
-        /* Content Area */
-        .main-content {
-            margin-top: 60px;
-            padding: 1.5rem 1rem;
-            padding-bottom: 80px;
-            min-height: calc(100vh - 60px - 65px);
-        }
-        
-        /* Bottom Navigation */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1020;
-            background: white;
-            box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.08);
-            border-top: 1px solid rgba(50, 50, 255, 0.1);
-            display: flex;
-            justify-content: space-around;
-            padding: 0.5rem 0.25rem;
-            height: 65px;
-        }
-        
-        .bottom-nav .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 0.7rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border-radius: 12px;
-            padding: 0.5rem;
-            position: relative;
-        }
-        
-        .bottom-nav .nav-item i {
-            font-size: 1.4rem;
-            margin-bottom: 0.25rem;
-            transition: all 0.2s ease;
-        }
-        
-        .bottom-nav .nav-item span {
-            transition: all 0.2s ease;
-        }
-        
-        .bottom-nav .nav-item.active {
-            color: var(--foodly-primary);
-        }
-        
-        .bottom-nav .nav-item.active i {
-            transform: scale(1.1);
-        }
-        
-        .bottom-nav .nav-item:active {
-            transform: scale(0.92);
-        }
-        
-        .bottom-nav .nav-item-primary {
-            background: linear-gradient(135deg, var(--foodly-primary) 0%, var(--foodly-dark) 100%);
-            color: white;
-            border-radius: 50%;
-            width: 56px;
-            height: 56px;
-            margin-top: -28px;
-            box-shadow: 0 4px 12px rgba(50, 50, 255, 0.3);
-            flex: 0 0 56px;
-        }
-        
-        .bottom-nav .nav-item-primary i {
-            font-size: 1.8rem;
-            margin-bottom: 0;
-        }
-        
-        .bottom-nav .nav-item-primary span {
-            display: none;
-        }
-        
-        .bottom-nav .nav-item-primary:active {
-            transform: scale(0.9);
-        }
-        
-        /* Cards Mobile Optimized */
-        .card {
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            background: white;
-            margin-bottom: 1rem;
-        }
-        
-        .card-header {
-            background: linear-gradient(135deg, var(--foodly-primary) 0%, var(--foodly-dark) 100%);
-            color: white;
-            border-radius: 16px 16px 0 0 !important;
-            padding: 1rem;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-        
-        .card-body {
-            padding: 1rem;
-        }
-        
-        /* Buttons Mobile Optimized */
-        .btn {
-            border-radius: 12px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.3s ease;
-            border: none;
-        }
-        
-        .btn-primary {
-            background: var(--foodly-primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: var(--foodly-dark);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(50, 50, 255, 0.3);
-        }
-        
-        .btn-danger {
-            background: var(--foodly-red);
-        }
-        
-        .btn-lg {
-            padding: 1rem 2rem;
-            font-size: 1rem;
-            width: 100%;
-        }
-        
-        .btn-sm {
-            padding: 0.5rem 1rem;
-            font-size: 0.75rem;
-        }
-        
-        /* Form Controls Mobile */
-        .form-control, .form-select {
-            border-radius: 12px;
-            border: 2px solid #e9ecef;
-            padding: 0.875rem 1rem;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--foodly-primary);
-            box-shadow: 0 0 0 0.2rem rgba(50, 50, 255, 0.15);
-        }
-        
-        /* Country Code Selector */
-        .country-code-select {
-            max-width: 120px;
-            padding-left: 2.5rem;
-            border-right: none;
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
-            background-color: #f8f9fa;
-            background-repeat: no-repeat;
-            background-position: 0.75rem center;
-            background-size: 1.5em 1.5em;
-        }
-        
-        .country-code-select option {
-            padding-left: 2rem;
-            background-repeat: no-repeat;
-            background-position: 0.5rem center;
-            background-size: 1.2em 1.2em;
-        }
-        
-        /* Generate flag backgrounds for each country */
-        .country-code-select option[data-flag="fi-ge"] { background-image: url('https://flagcdn.com/ge.svg'); }
-        .country-code-select option[data-flag="fi-us"] { background-image: url('https://flagcdn.com/us.svg'); }
-        .country-code-select option[data-flag="fi-gb"] { background-image: url('https://flagcdn.com/gb.svg'); }
-        .country-code-select option[data-flag="fi-ru"] { background-image: url('https://flagcdn.com/ru.svg'); }
-        .country-code-select option[data-flag="fi-tr"] { background-image: url('https://flagcdn.com/tr.svg'); }
-        .country-code-select option[data-flag="fi-es"] { background-image: url('https://flagcdn.com/es.svg'); }
-        .country-code-select option[data-flag="fi-fr"] { background-image: url('https://flagcdn.com/fr.svg'); }
-        .country-code-select option[data-flag="fi-de"] { background-image: url('https://flagcdn.com/de.svg'); }
-        .country-code-select option[data-flag="fi-it"] { background-image: url('https://flagcdn.com/it.svg'); }
-        .country-code-select option[data-flag="fi-pl"] { background-image: url('https://flagcdn.com/pl.svg'); }
-        .country-code-select option[data-flag="fi-ua"] { background-image: url('https://flagcdn.com/ua.svg'); }
-        .country-code-select option[data-flag="fi-pt"] { background-image: url('https://flagcdn.com/pt.svg'); }
-        .country-code-select option[data-flag="fi-nl"] { background-image: url('https://flagcdn.com/nl.svg'); }
-        .country-code-select option[data-flag="fi-sa"] { background-image: url('https://flagcdn.com/sa.svg'); }
-        .country-code-select option[data-flag="fi-il"] { background-image: url('https://flagcdn.com/il.svg'); }
-        
-        .country-code-select:focus {
-            background-color: white;
-        }
-        
-        #country_code + .form-control {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-            border-left: none;
-        }
-        
-        .form-label {
-            font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-            color: #495057;
-        }
-        
-        /* Badges */
-        .badge {
-            padding: 0.5rem 0.75rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-        
-        .badge.bg-pending { background-color: #ffc107 !important; }
-        .badge.bg-confirmed { background-color: #17a2b8 !important; }
-        .badge.bg-awaiting_payment { background-color: #fd7e14 !important; }
-        .badge.bg-paid { background-color: #28a745 !important; }
-        .badge.bg-completed { background-color: #6c757d !important; }
-        .badge.bg-cancelled { background-color: #dc3545 !important; }
-        .badge.bg-no_show { background-color: #6c757d !important; }
-        
-        /* List Items */
-        .list-group-item {
-            border-left: 3px solid transparent;
-            transition: all 0.2s ease;
-        }
-        
-        .list-group-item:active {
-            transform: scale(0.98);
-            background-color: #f5f9fc;
-        }
-        
-        .list-group-item-action:hover,
-        .list-group-item-action:focus {
-            background-color: #f5f9fc;
-            border-left-color: #3232ff;
-        }
-        
-        .alert {
-            border-radius: 10px;
-            border: none;
-        }
-        
-        .container-main {
-            padding: 2rem 0;
-        }
-        
-        .footer {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 2rem 0;
-            margin-top: 3rem;
-            border-top: 1px solid rgba(0,0,0,0.1);
-        }
-        
-        .nav-pills .nav-link {
-            border-radius: 10px;
-            padding: 0.75rem 1.5rem;
-            margin: 0 0.25rem;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-pills .nav-link.active {
-            background: #3232ff;
-        }
-        
-        .table {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .table thead {
-            background: linear-gradient(135deg, #3232ff 0%, #070738 100%);
-            color: white;
-        }
-
-        /* Mobile-specific Utilities */
-        .main-content {
-            padding: 1rem;
-            max-width: 100%;
-        }
-
-        /* Alerts Mobile Optimization */
-        .alert {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 1rem;
-        }
-
-        .alert i {
-            margin-right: 8px;
-        }
-
-        /* Footer Mobile */
-        .footer {
-            background: #f5f9fc;
-            border-top: 1px solid rgba(50, 50, 255, 0.1);
-            margin-top: 3rem;
-            padding-bottom: 80px; /* Space for bottom nav */
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-            .main-content {
-                padding: 0.75rem;
-            }
-            
-            .card-header {
-                padding: 1rem;
-                font-size: 1.1rem;
-            }
-
-            .card-body {
-                padding: 1rem;
-            }
-
-            h1, .h1 { font-size: 1.75rem; }
-            h2, .h2 { font-size: 1.5rem; }
-            h3, .h3 { font-size: 1.25rem; }
-            h4, .h4 { font-size: 1.1rem; }
-
-            .btn-lg {
-                padding: 14px 24px;
-                font-size: 16px;
-            }
-
-            .table {
-                font-size: 14px;
-            }
-
-            .badge {
-                font-size: 11px;
-                padding: 4px 8px;
-            }
-        }
-
-        /* Hide bottom nav on desktop */
-        @media (min-width: 769px) {
-            .bottom-nav {
-                display: none;
-            }
-
-            body {
-                padding-bottom: 0;
-            }
-
-            .footer {
-                padding-bottom: 2rem;
-            }
-
-            .main-content {
-                max-width: 1200px;
-                margin: 0 auto;
-                margin-top: 80px;
-                padding: 2rem 2rem 3rem;
-            }
-
-            .mobile-header {
-                padding: 1rem 2rem;
-                height: 70px;
-            }
-
-            .header-logo img {
-                height: 42px;
-            }
-
-            .card {
-                margin-bottom: 1.5rem;
-            }
-        }
-    </style>
+    <!-- Custom Mobile Styles -->
+    <link rel="stylesheet" href="{{ asset('css/mobile.css') }}">
     
     @stack('styles')
 </head>
@@ -508,18 +34,37 @@
             </a>
             @if(session('partner_token'))
             <div class="header-actions">
-                <button onclick="requestNotificationPermission()" class="header-icon" id="notification-bell" title="შეტყობინებების ჩართვა">
-                    <i class="bi bi-bell" id="notification-icon" style="font-size: 20px;"></i>
+                <!-- Notification Bell -->
+                <button onclick="requestNotificationPermission()" class="header-icon notification-bell" id="notification-bell" title="შეტყობინებების ჩართვა">
+                    <i class="bi bi-bell" id="notification-icon" style="font-size: 22px;"></i>
+                    <!-- Uncomment to show badge with count -->
+                    <!-- <span class="notification-badge">3</span> -->
                 </button>
-                <a href="#" class="header-icon">
-                    <i class="bi bi-person-circle" style="font-size: 24px;"></i>
-                </a>
-                <form action="{{ route('mobile.logout') }}" method="POST" style="display: inline;">
-                    @csrf
-                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.4rem 0.8rem;">
-                        <i class="bi bi-box-arrow-right"></i> გასვლა
+                
+                <!-- User Dropdown -->
+                <div class="user-dropdown">
+                    <button class="header-icon" id="userDropdownBtn" type="button">
+                        <i class="bi bi-person-circle" style="font-size: 26px;"></i>
                     </button>
-                </form>
+                    <div class="dropdown-menu" id="userDropdownMenu">
+                        <a href="{{ route('mobile.profile.index') }}" class="dropdown-item">
+                            <i class="bi bi-person"></i>
+                            <span>პროფილი</span>
+                        </a>
+                        <a href="{{ route('mobile.settings.index') }}" class="dropdown-item">
+                            <i class="bi bi-gear"></i>
+                            <span>პარამეტრები</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form action="{{ route('mobile.logout') }}" method="POST" id="logoutForm">
+                            @csrf
+                            <button type="submit" class="dropdown-item logout">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>გასვლა</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
             @else
             <div class="header-actions">
@@ -693,6 +238,36 @@
         });
     </script>
     @endif
+    
+    <script>
+        // User Dropdown Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const userDropdownBtn = document.getElementById('userDropdownBtn');
+            const userDropdownMenu = document.getElementById('userDropdownMenu');
+            
+            if (userDropdownBtn && userDropdownMenu) {
+                // Toggle dropdown on button click
+                userDropdownBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userDropdownMenu.classList.toggle('show');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!userDropdownBtn.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                        userDropdownMenu.classList.remove('show');
+                    }
+                });
+                
+                // Prevent dropdown from closing when clicking inside
+                userDropdownMenu.addEventListener('click', function(e) {
+                    if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
+                        e.stopPropagation();
+                    }
+                });
+            }
+        });
+    </script>
     
     @stack('scripts')
 </body>

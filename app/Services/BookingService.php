@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Exception;
 
-class MobileBookingService
+class BookingService
 {
     public function __construct(
         private readonly HttpClient $client

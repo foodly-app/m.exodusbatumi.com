@@ -19,11 +19,42 @@ class AuthService
      */
     public function login(array $credentials): array
     {
-        return $this->client->post('/api/partner/login', $credentials);
+        $response = $this->client->post('/api/partner/login', $credentials);
+        
+        // API აბრუნებს: { "token": "...", "user": {...} }
+        if (isset($response['token'])) {
+            // Store authentication data in session
+            session(['partner_token' => $response['token']]);
+            
+            if (isset($response['user'])) {
+                session(['partner_user' => $response['user']]);
+            }
+            
+            // Store login timestamp for session management
+            session(['partner_login_at' => now()->timestamp]);
+            
+            // Extend session lifetime for mobile users (8 hours)
+            config(['session.lifetime' => 480]);
+            
+            // Return in standard format
+            return [
+                'success' => true,
+                'data' => [
+                    'access_token' => $response['token'],
+                    'user' => $response['user'] ?? null
+                ]
+            ];
+        }
+        
+        // თუ token არ არის - წარუმატებელი login
+        return [
+            'success' => false,
+            'message' => $response['message'] ?? 'Login failed'
+        ];
     }
 
     /**
-     * Get authenticated user information
+     * Get current authenticated user
      *
      * @return array
      * @throws Exception
@@ -31,6 +62,40 @@ class AuthService
     public function me(): array
     {
         return $this->client->get('/api/partner/me');
+    }
+
+    /**
+     * Register new partner for mobile
+     *
+     * @param array $data
+     * @return array
+     * @throws Exception
+     */
+    public function register(array $data): array
+    {
+        $response = $this->client->post('/api/partner/register', $data);
+        
+        if ($response['success'] ?? false) {
+            // Store token if registration includes auto-login
+            if (isset($response['data']['access_token'])) {
+                session(['partner_token' => $response['data']['access_token']]);
+            }
+            if (isset($response['data']['user'])) {
+                session(['partner_user' => $response['data']['user']]);
+            }
+        }
+        
+        return $response;
+    }
+
+    /**
+     * Check if user is authenticated
+     *
+     * @return bool
+     */
+    public function check(): bool
+    {
+        return session()->has('partner_token') && !empty(session('partner_token'));
     }
 
     /**
@@ -45,29 +110,7 @@ class AuthService
     }
 
     /**
-     * Logout user and invalidate token
-     *
-     * @return array
-     * @throws Exception
-     */
-    public function logout(): array
-    {
-        return $this->client->post('/api/partner/logout');
-    }
-
-    /**
-     * Get user profile
-     *
-     * @return array
-     * @throws Exception
-     */
-    public function getProfile(): array
-    {
-        return $this->client->get('/api/partner/profile');
-    }
-
-    /**
-     * Update user profile
+     * Update user profile for mobile
      *
      * @param array $data
      * @return array
@@ -81,14 +124,14 @@ class AuthService
     /**
      * Upload user avatar
      *
-     * @param mixed $avatar
+     * @param $file
      * @return array
      * @throws Exception
      */
-    public function uploadAvatar($avatar): array
+    public function uploadAvatar($file): array
     {
-        return $this->client->post('/api/partner/avatar', [
-            'avatar' => $avatar
+        return $this->client->post('/api/partner/profile/avatar', [
+            'avatar' => $file
         ]);
     }
 
@@ -100,11 +143,11 @@ class AuthService
      */
     public function deleteAvatar(): array
     {
-        return $this->client->delete('/api/partner/avatar');
+        return $this->client->delete('/api/partner/profile/avatar');
     }
 
     /**
-     * Change user password
+     * Change password
      *
      * @param array $data
      * @return array
@@ -112,6 +155,68 @@ class AuthService
      */
     public function changePassword(array $data): array
     {
-        return $this->client->put('/api/partner/password', $data);
+        return $this->client->put('/api/partner/profile/password', $data);
     }
-} 
+
+    /**
+     * Logout user
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function logout(): array
+    {
+        try {
+            $response = $this->client->post('/api/partner/logout');
+            
+            // Clear all session data (file-based storage)
+            session()->forget([
+                'partner_token', 
+                'partner_user', 
+                'partner_login_at',
+                'selected_organization',
+                'mobile_user',
+                'mobile_data'
+            ]);
+            
+            return $response;
+        } catch (Exception $e) {
+            // Clear session even if API call fails (no database dependency)
+            session()->flush(); // Clear entire session
+            throw $e;
+        }
+    }
+
+
+
+    /**
+     * Get current user from session
+     *
+     * @return array|null
+     */
+    public function user(): ?array
+    {
+        return session('partner_user');
+    }
+
+    /**
+     * Get current token from session
+     *
+     * @return string|null
+     */
+    public function token(): ?string
+    {
+        return session('partner_token');
+    }
+
+    /**
+     * Get initial dashboard data after login
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function getInitialDashboard(): array
+    {
+        return $this->client->get('/api/partner/initial-dashboard');
+    }
+}

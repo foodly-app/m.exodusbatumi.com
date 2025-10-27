@@ -3,195 +3,195 @@
 namespace App\Http\Controllers;
 
 use App\Services\ReservationService;
-use Illuminate\Http\JsonResponse;
+use App\Services\RestaurantService;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ReservationController extends Controller
 {
     public function __construct(
-        private readonly ReservationService $reservationService
+        private readonly ReservationService $reservationService,
+        private readonly RestaurantService $restaurantService
     ) {}
 
     /**
-     * Get list of all reservations
+     * Show reservations list (simplified - uses session data)
      *
      * @param Request $request
-     * @param int|null $organizationId
-     * @param int|null $restaurantId
-     * @return JsonResponse
+     * @return View
      */
-    public function index(Request $request, int $organizationId = null, int $restaurantId = null): JsonResponse
+    public function indexSimplified(Request $request): View
     {
         try {
-            $reservations = $this->reservationService->list(
-                $organizationId, 
-                $restaurantId, 
-                $request->query()
-            );
-
-            // Return the API response directly (it already has success and data structure)
-            return response()->json($reservations);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ], 500);
-        }
-    }
-
-    /**
-     * Get reservations calendar
-     *
-     * @param Request $request
-     * @param int|null $organizationId
-     * @param int|null $restaurantId
-     * @return JsonResponse
-     */
-    public function calendar(Request $request, int $organizationId = null, int $restaurantId = null): JsonResponse
-    {
-        try {
-            $params = $request->query();
+            // Get selected restaurant from session (from initial-dashboard)
+            $dashboardData = session('dashboard_data');
+            $selectedRestaurant = session('selected_restaurant');
             
-            // If organization and restaurant IDs are provided via route parameters, use them
-            if ($organizationId && $restaurantId) {
-                $params['organization_id'] = $organizationId;
-                $params['restaurant_id'] = $restaurantId;
+            if (!$selectedRestaurant && $dashboardData && isset($dashboardData['selected_restaurant'])) {
+                $selectedRestaurant = $dashboardData['selected_restaurant'];
             }
             
-            $calendar = $this->reservationService->calendar($params);
+            if (!$selectedRestaurant) {
+                return view('mobile.reservations.index', [
+                    'reservations' => [],
+                    'restaurant' => null,
+                    'error' => 'რესტორანი არ არის არჩეული. გთხოვთ ჯერ გაიაროთ dashboard.'
+                ]);
+            }
+            
+            // Use recent_reservations from dashboard if available
+            if ($dashboardData && isset($dashboardData['dashboard']['recent_reservations'])) {
+                $reservations = $dashboardData['dashboard']['recent_reservations'];
+            } else {
+                $reservations = [];
+            }
 
-            return response()->json($calendar);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return view('mobile.reservations.index', [
+                'reservations' => $reservations,
+                'restaurant' => $selectedRestaurant,
+                'error' => null
+            ]);
+
+        } catch (Exception $e) {
+            return view('mobile.reservations.index', [
+                'reservations' => [],
+                'restaurant' => null,
+                'error' => 'Failed to load reservations: ' . $e->getMessage()
+            ]);
         }
     }
 
     /**
-     * Get reservation by ID
+     * Show reservations list
      *
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @param Request $request
+     * @param int|null $organizationId
+     * @param int|null $restaurantId
+     * @return View
      */
-    public function show(int $organizationId, int $restaurantId, int $id): JsonResponse
+
+
+
+
+    public function index(Request $request, ?int $organizationId = null, ?int $restaurantId = null): View
     {
         try {
-            $reservation = $this->reservationService->get($organizationId, $restaurantId, $id);
+            $filters = $request->only(['status', 'date_from', 'date_to', 'page']);
+            
+            // Default to showing upcoming reservations
+            if (!isset($filters['date_from'])) {
+                $filters['date_from'] = now()->format('Y-m-d');
+            }
 
-            return response()->json($reservation);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 404);
+            // If no organization/restaurant specified, return empty view or redirect
+            if (!$organizationId || !$restaurantId) {
+                return view('mobile.reservations.index', [
+                    'reservations' => [],
+                    'meta' => null,
+                    'restaurant' => null,
+                    'organizationId' => $organizationId,
+                    'restaurantId' => $restaurantId,
+                    'filters' => $filters,
+                    'error' => null
+                ]);
+            }
+
+            $reservations = $this->reservationService->getMobileReservationList($organizationId, $restaurantId, $filters);
+            $restaurant = $this->restaurantService->getRestaurant($organizationId, $restaurantId);
+
+            return view('mobile.reservations.index', [
+                'reservations' => $reservations['success'] ? $reservations['data'] : [],
+                'meta' => $reservations['meta'] ?? null,
+                'restaurant' => $restaurant['success'] ? $restaurant['data'] : null,
+                'organizationId' => $organizationId,
+                'restaurantId' => $restaurantId,
+                'filters' => $filters,
+                'error' => !$reservations['success'] ? $reservations['error'] : null
+            ]);
+
+        } catch (Exception $e) {
+            return view('mobile.reservations.index', [
+                'reservations' => [],
+                'meta' => null,
+                'restaurant' => null,
+                'organizationId' => $organizationId,
+                'restaurantId' => $restaurantId,
+                'filters' => [],
+                'error' => 'Failed to load reservations: ' . $e->getMessage()
+            ]);
         }
     }
 
     /**
-     * Create reservation
+     * Show upcoming reservations
      *
      * @param Request $request
      * @param int $organizationId
      * @param int $restaurantId
-     * @return JsonResponse
+     * @return View
      */
-    public function store(Request $request, int $organizationId, int $restaurantId): JsonResponse
+    public function upcoming(Request $request, int $organizationId, int $restaurantId): View
     {
         try {
-            $data = $request->validate([
-                'customer_name' => ['required', 'string', 'max:255'],
-                'customer_phone' => ['required', 'string', 'max:20'],
-                'customer_email' => ['sometimes', 'email'],
-                'date' => ['required', 'date'],
-                'time' => ['required', 'string'],
-                'guests' => ['required', 'integer', 'min:1'],
-                'table_id' => ['sometimes', 'integer'],
-                'notes' => ['sometimes', 'string'],
+            $filters = [
+                'date_from' => now()->format('Y-m-d'),
+                'date_to' => now()->addDays(7)->format('Y-m-d'),
+                'status' => 'confirmed,pending'
+            ];
+
+            $reservations = $this->reservationService->getMobileReservationList($organizationId, $restaurantId, $filters);
+            $restaurant = $this->restaurantService->getRestaurant($organizationId, $restaurantId);
+
+            return view('mobile.reservations.upcoming', [
+                'reservations' => $reservations['success'] ? $reservations['data'] : [],
+                'restaurant' => $restaurant['success'] ? $restaurant['data'] : null,
+                'organizationId' => $organizationId,
+                'restaurantId' => $restaurantId,
+                'error' => !$reservations['success'] ? $reservations['error'] : null
             ]);
 
-            $reservation = $this->reservationService->create($organizationId, $restaurantId, $data);
-
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+        } catch (Exception $e) {
+            return view('mobile.reservations.upcoming', [
+                'reservations' => [],
+                'restaurant' => null,
+                'organizationId' => $organizationId,
+                'restaurantId' => $restaurantId,
+                'error' => 'Failed to load upcoming reservations: ' . $e->getMessage()
+            ]);
         }
     }
 
     /**
-     * Update reservation
+     * Show reservation details
      *
-     * @param Request $request
      * @param int $organizationId
      * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @param int $reservationId
+     * @return View
      */
-    public function update(Request $request, int $organizationId, int $restaurantId, int $id): JsonResponse
+    public function show(int $organizationId, int $restaurantId, int $reservationId): View
     {
         try {
-            $data = $request->validate([
-                'customer_name' => ['sometimes', 'string', 'max:255'],
-                'customer_phone' => ['sometimes', 'string', 'max:20'],
-                'customer_email' => ['sometimes', 'email'],
-                'date' => ['sometimes', 'date'],
-                'time' => ['sometimes', 'string'],
-                'guests' => ['sometimes', 'integer', 'min:1'],
-                'table_id' => ['sometimes', 'integer'],
-                'notes' => ['sometimes', 'string'],
+            $reservation = $this->reservationService->getReservation($organizationId, $restaurantId, $reservationId);
+            $restaurant = $this->restaurantService->getRestaurant($organizationId, $restaurantId);
+
+            return view('mobile.reservations.show', [
+                'reservation' => $reservation['success'] ? $reservation['data'] : null,
+                'restaurant' => $restaurant['success'] ? $restaurant['data'] : null,
+                'organizationId' => $organizationId,
+                'restaurantId' => $restaurantId,
+                'error' => !$reservation['success'] ? $reservation['error'] : null
             ]);
 
-            $reservation = $this->reservationService->update($organizationId, $restaurantId, $id, $data);
-
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
+        } catch (Exception $e) {
+            return view('mobile.reservations.show', [
+                'reservation' => null,
+                'restaurant' => null,
+                'organizationId' => $organizationId,
+                'restaurantId' => $restaurantId,
+                'error' => 'Failed to load reservation: ' . $e->getMessage()
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
-        }
-    }
-
-    /**
-     * Update reservation status
-     *
-     * @param Request $request
-     * @param int $organizationId
-     * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
-     */
-    public function updateStatus(Request $request, int $organizationId, int $restaurantId, int $id): JsonResponse
-    {
-        try {
-            $data = $request->validate([
-                'status' => ['required', 'string', 'in:pending,confirmed,cancelled,completed,no_show']
-            ]);
-
-            $reservation = $this->reservationService->updateStatus($organizationId, $restaurantId, $id, $data);
-
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
         }
     }
 
@@ -200,23 +200,22 @@ class ReservationController extends Controller
      *
      * @param int $organizationId
      * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @param int $reservationId
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function confirm(int $organizationId, int $restaurantId, int $id): JsonResponse
+    public function confirm(int $organizationId, int $restaurantId, int $reservationId)
     {
         try {
-            $reservation = $this->reservationService->confirm($organizationId, $restaurantId, $id);
+            $response = $this->reservationService->confirm($organizationId, $restaurantId, $reservationId);
 
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+            if ($response['success']) {
+                return back()->with('success', 'Reservation confirmed successfully');
+            }
+
+            return back()->withErrors(['error' => 'Failed to confirm reservation']);
+
+        } catch (Exception $e) {
+            return back()->withErrors(['error' => 'Confirmation failed: ' . $e->getMessage()]);
         }
     }
 
@@ -226,232 +225,290 @@ class ReservationController extends Controller
      * @param Request $request
      * @param int $organizationId
      * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @param int $reservationId
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function cancel(Request $request, int $organizationId, int $restaurantId, int $id): JsonResponse
+    public function cancel(Request $request, int $organizationId, int $restaurantId, int $reservationId)
     {
+        $request->validate([
+            'reason' => 'nullable|string|max:255'
+        ]);
+
         try {
-            $data = $request->validate([
-                'reason' => ['sometimes', 'string']
-            ]);
+            $response = $this->reservationService->cancel(
+                $organizationId, 
+                $restaurantId, 
+                $reservationId, 
+                $request->reason
+            );
 
-            $reservation = $this->reservationService->cancel($organizationId, $restaurantId, $id, $data);
+            if ($response['success']) {
+                return back()->with('success', 'Reservation cancelled successfully');
+            }
 
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+            return back()->withErrors(['error' => 'Failed to cancel reservation']);
+
+        } catch (Exception $e) {
+            return back()->withErrors(['error' => 'Cancellation failed: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Mark reservation as paid
+     * Mark as paid
      *
      * @param int $organizationId
      * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @param int $reservationId
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function markAsPaid(int $organizationId, int $restaurantId, int $id): JsonResponse
+    public function markAsPaid(int $organizationId, int $restaurantId, int $reservationId)
     {
         try {
-            $reservation = $this->reservationService->markAsPaid($organizationId, $restaurantId, $id);
+            $response = $this->reservationService->markAsPaid($organizationId, $restaurantId, $reservationId);
 
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+            if ($response['success']) {
+                return back()->with('success', 'Reservation marked as paid');
+            }
+
+            return back()->withErrors(['error' => 'Failed to mark as paid']);
+
+        } catch (Exception $e) {
+            return back()->withErrors(['error' => 'Update failed: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Complete reservation
+     * Mark as completed
      *
      * @param int $organizationId
      * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @param int $reservationId
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function complete(int $organizationId, int $restaurantId, int $id): JsonResponse
+    public function markAsCompleted(int $organizationId, int $restaurantId, int $reservationId)
     {
         try {
-            $reservation = $this->reservationService->complete($organizationId, $restaurantId, $id);
+            $response = $this->reservationService->markAsCompleted($organizationId, $restaurantId, $reservationId);
 
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+            if ($response['success']) {
+                return back()->with('success', 'Reservation completed successfully');
+            }
+
+            return back()->withErrors(['error' => 'Failed to mark as completed']);
+
+        } catch (Exception $e) {
+            return back()->withErrors(['error' => 'Update failed: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Mark reservation as no-show
+     * Mark as no-show
      *
      * @param int $organizationId
      * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @param int $reservationId
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function noShow(int $organizationId, int $restaurantId, int $id): JsonResponse
+    public function markAsNoShow(int $organizationId, int $restaurantId, int $reservationId)
     {
         try {
-            $reservation = $this->reservationService->noShow($organizationId, $restaurantId, $id);
+            $response = $this->reservationService->markAsNoShow($organizationId, $restaurantId, $reservationId);
 
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+            if ($response['success']) {
+                return back()->with('success', 'Reservation marked as no-show');
+            }
+
+            return back()->withErrors(['error' => 'Failed to mark as no-show']);
+
+        } catch (Exception $e) {
+            return back()->withErrors(['error' => 'Update failed: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Assign table to reservation
+     * Update status (AJAX endpoint)
      *
      * @param Request $request
      * @param int $organizationId
      * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @param int $reservationId
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function assignTable(Request $request, int $organizationId, int $restaurantId, int $id): JsonResponse
+    public function updateStatus(Request $request, int $organizationId, int $restaurantId, int $reservationId)
     {
+        $request->validate([
+            'status' => 'required|string|in:pending,confirmed,cancelled,completed,no-show',
+            'reason' => 'nullable|string|max:255'
+        ]);
+
         try {
-            $data = $request->validate([
-                'table_id' => ['required', 'integer']
-            ]);
+            $response = $this->reservationService->updateStatus(
+                $organizationId,
+                $restaurantId,
+                $reservationId,
+                $request->status,
+                $request->reason
+            );
 
-            $reservation = $this->reservationService->assignTable($organizationId, $restaurantId, $id, $data);
+            return response()->json($response);
 
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
-            ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
-        }
-    }
-
-    /**
-     * Get reservation statistics
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function statistics(Request $request): JsonResponse
-    {
-        try {
-            $statistics = $this->reservationService->statistics($request->query());
-
-            return response()->json([
-                'success' => true,
-                'data' => $statistics
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
+                'error' => $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Search reservations
+     * Get reservations data (AJAX endpoint)
      *
      * @param Request $request
-     * @return JsonResponse
+     * @param int $organizationId
+     * @param int $restaurantId
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function search(Request $request): JsonResponse
+    public function getReservations(Request $request, int $organizationId, int $restaurantId)
     {
         try {
-            $reservations = $this->reservationService->search($request->query());
+            $filters = $request->only(['status', 'date_from', 'date_to', 'page', 'per_page']);
+            
+            $reservations = $this->reservationService->getMobileReservationList($organizationId, $restaurantId, $filters);
 
-            return response()->json([
-                'success' => true,
-                'data' => $reservations
-            ]);
-        } catch (\Exception $e) {
+            return response()->json($reservations);
+
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'error' => $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Add note to reservation
+     * Get status counts (AJAX endpoint)
      *
      * @param Request $request
      * @param int $organizationId
      * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function addNote(Request $request, int $organizationId, int $restaurantId, int $id): JsonResponse
+    public function getStatusCounts(Request $request, int $organizationId, int $restaurantId)
     {
         try {
-            $data = $request->validate([
-                'note' => ['required', 'string']
-            ]);
+            $dateRange = $request->only(['from', 'to']);
+            
+            $counts = $this->reservationService->getStatusCounts($organizationId, $restaurantId, $dateRange);
 
-            $reservation = $this->reservationService->addNote($organizationId, $restaurantId, $id, $data);
+            return response()->json($counts);
 
-            return response()->json([
-                'success' => true,
-                'data' => $reservation
-            ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
     /**
-     * Delete reservation
+     * Initiate payment (AJAX endpoint)
      *
+     * @param Request $request
      * @param int $organizationId
      * @param int $restaurantId
-     * @param int $id
-     * @return JsonResponse
+     * @param int $reservationId
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(int $organizationId, int $restaurantId, int $id): JsonResponse
+    public function initiatePayment(Request $request, int $organizationId, int $restaurantId, int $reservationId)
     {
-        try {
-            $this->reservationService->delete($organizationId, $restaurantId, $id);
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01'
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Reservation deleted successfully'
+        try {
+            $returnUrl = route('mobile.payments.success', [
+                'organization' => $organizationId,
+                'restaurant' => $restaurantId,
+                'reservation' => $reservationId
             ]);
-        } catch (\Exception $e) {
+
+            $response = $this->reservationService->initiatePayment(
+                $organizationId,
+                $restaurantId,
+                $reservationId,
+                $request->amount,
+                $returnUrl
+            );
+
+            return response()->json($response);
+
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk actions (AJAX endpoint)
+     *
+     * @param Request $request
+     * @param int $organizationId
+     * @param int $restaurantId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function bulkAction(Request $request, int $organizationId, int $restaurantId)
+    {
+        $request->validate([
+            'action' => 'required|string|in:confirm,cancel,complete,no-show',
+            'reservation_ids' => 'required|array|min:1',
+            'reservation_ids.*' => 'integer|exists:reservations,id',
+            'reason' => 'nullable|string|max:255'
+        ]);
+
+        try {
+            $results = [];
+            $successCount = 0;
+            $errorCount = 0;
+
+            foreach ($request->reservation_ids as $reservationId) {
+                try {
+                    $response = match ($request->action) {
+                        'confirm' => $this->reservationService->confirm($organizationId, $restaurantId, $reservationId),
+                        'cancel' => $this->reservationService->cancel($organizationId, $restaurantId, $reservationId, $request->reason),
+                        'complete' => $this->reservationService->markAsCompleted($organizationId, $restaurantId, $reservationId),
+                        'no-show' => $this->reservationService->markAsNoShow($organizationId, $restaurantId, $reservationId)
+                    };
+
+                    if ($response['success']) {
+                        $successCount++;
+                    } else {
+                        $errorCount++;
+                    }
+
+                    $results[$reservationId] = $response;
+
+                } catch (Exception $e) {
+                    $errorCount++;
+                    $results[$reservationId] = ['success' => false, 'error' => $e->getMessage()];
+                }
+            }
+
+            return response()->json([
+                'success' => $errorCount === 0,
+                'results' => $results,
+                'summary' => [
+                    'total' => count($request->reservation_ids),
+                    'success' => $successCount,
+                    'errors' => $errorCount
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
             ], 500);
         }
     }
