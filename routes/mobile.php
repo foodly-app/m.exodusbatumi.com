@@ -195,7 +195,7 @@ Route::prefix('mobile')->name('mobile.')->middleware(['web', 'mobile.auth'])->gr
     
     // Booking management (partner-assisted)
     Route::prefix('organizations/{organization}')->name('booking.')->group(function () {
-        Route::get('/booking/restaurants', [MobileBookingController::class, 'restaurants'])->name('restaurants');
+        Route::get('/restaurants', [MobileBookingController::class, 'restaurants'])->name('restaurants');
         
         Route::prefix('restaurants/{restaurant}/booking')->group(function () {
             Route::get('/select-date', [MobileBookingController::class, 'selectDate'])->name('select-date');
