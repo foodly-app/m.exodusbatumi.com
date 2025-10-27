@@ -30,7 +30,7 @@
     <header class="mobile-header">
         <div class="header-content">
             <a href="{{ route('mobile.dashboard') }}" class="header-logo">
-                <img src="{{ asset('images/logo/logo-h-white.png') }}" alt="Foodly" height="32">
+                <img src="{{ asset('images/logo/SVG/White/White-01.svg') }}" alt="Foodly" height="32">
             </a>
             @if(session('partner_token'))
             <div class="header-actions">
